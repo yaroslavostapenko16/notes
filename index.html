@@ -159,6 +159,22 @@
                         <span>Deleted</span>
                     </button>
                 </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Features</h3>
+                    <button class="nav-item" id="analyticsNavBtn">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analytics</span>
+                    </button>
+                    <button class="nav-item" id="settingsNavBtn">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </button>
+                    <button class="nav-item" id="helpNavBtn">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Shortcuts</span>
+                    </button>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -276,6 +292,261 @@
 
     <!-- Notification Toast -->
     <div id="notificationToast" class="notification-toast"></div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="modal" style="display: none;">
+        <div class="modal-content analytics-modal">
+            <div class="modal-header">
+                <h2>Notes Analytics</h2>
+                <button class="btn-icon" onclick="closeModal('analyticsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Total Notes</h4>
+                            <p class="analytics-value" id="totalNotesCount">0</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-thumbtack"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Pinned Notes</h4>
+                            <p class="analytics-value" id="pinnedNotesCount">0</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Archived Notes</h4>
+                            <p class="analytics-value" id="archivedNotesCount">0</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-keyboard"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Total Characters</h4>
+                            <p class="analytics-value" id="totalCharacters">0</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-words"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Total Words</h4>
+                            <p class="analytics-value" id="totalWords">0</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h4>Last Modified</h4>
+                            <p class="analytics-value" id="lastModifiedDate">N/A</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-section">
+                    <h3>Color Distribution</h3>
+                    <div class="color-stats" id="colorStats">
+                        <!-- Color statistics will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="analytics-section">
+                    <h3>Export Options</h3>
+                    <div class="export-buttons">
+                        <button class="btn btn-secondary" onclick="exportNotesAsJSON()">
+                            <i class="fas fa-download"></i> Export as JSON
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportNotesAsCSV()">
+                            <i class="fas fa-download"></i> Export as CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportNotesAsText()">
+                            <i class="fas fa-download"></i> Export as Text
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display: none;">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="btn-icon" onclick="closeModal('settingsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Account Settings</h3>
+                    <div class="settings-item">
+                        <label>Username</label>
+                        <input type="text" id="settingsUsername" disabled class="settings-input">
+                    </div>
+                    <div class="settings-item">
+                        <label>Email</label>
+                        <input type="email" id="settingsEmail" disabled class="settings-input">
+                    </div>
+                    <button class="btn btn-secondary" onclick="changePassword()">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Display Preferences</h3>
+                    <div class="settings-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span>Dark Mode</span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoSaveToggle" checked>
+                            <span>Enable Auto-Save (every 2 seconds)</span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="notificationsToggle" checked>
+                            <span>Enable Notifications</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Data Management</h3>
+                    <button class="btn btn-danger" onclick="openDeleteAccountDialog()">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </button>
+                    <p class="settings-description">Warning: This action cannot be undone. All your notes will be permanently deleted.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help & Shortcuts Modal -->
+    <div id="helpModal" class="modal" style="display: none;">
+        <div class="modal-content help-modal">
+            <div class="modal-header">
+                <h2>Help & Keyboard Shortcuts</h2>
+                <button class="btn-icon" onclick="closeModal('helpModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>Keyboard Shortcuts</h3>
+                    <table class="shortcuts-table">
+                        <tr>
+                            <td class="shortcut-key">Ctrl + N</td>
+                            <td class="shortcut-desc">Create a new note</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Ctrl + S</td>
+                            <td class="shortcut-desc">Save current note</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Ctrl + F</td>
+                            <td class="shortcut-desc">Focus search box</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Ctrl + /</td>
+                            <td class="shortcut-desc">Toggle keyboard shortcuts help</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Escape</td>
+                            <td class="shortcut-desc">Close current modal</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Delete</td>
+                            <td class="shortcut-desc">Delete selected note</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Ctrl + P</td>
+                            <td class="shortcut-desc">Toggle note pin state</td>
+                        </tr>
+                        <tr>
+                            <td class="shortcut-key">Ctrl + A</td>
+                            <td class="shortcut-desc">Archive note</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="help-section">
+                    <h3>Getting Started</h3>
+                    <div class="help-content">
+                        <h4>Create a Note</h4>
+                        <p>Click the "New Note" button or press Ctrl+N to create a new note. Add a title and start typing your content.</p>
+                        
+                        <h4>Organize Notes</h4>
+                        <ul>
+                            <li><strong>Pin:</strong> Keep important notes at the top of your list</li>
+                            <li><strong>Archive:</strong> Hide completed or old notes</li>
+                            <li><strong>Color Code:</strong> Use different colors to categorize notes</li>
+                            <li><strong>Search:</strong> Use the search box to find notes quickly</li>
+                        </ul>
+
+                        <h4>Tips & Tricks</h4>
+                        <ul>
+                            <li>Notes are automatically saved every 2 seconds</li>
+                            <li>Use the color palette to visually organize your notes</li>
+                            <li>Search works across note titles and content</li>
+                            <li>Deleted notes can be restored from the Deleted tab</li>
+                            <li>Check Analytics to see statistics about your notes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal" style="display: none;">
+        <div class="modal-content change-password-modal">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <button class="btn-icon" onclick="closeModal('changePasswordModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm" onsubmit="submitChangePassword(event)">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <input type="password" id="confirmNewPassword" name="confirm_password" required class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Update Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Loading Spinner -->
     <div id="loadingSpinner" class="loading-spinner" style="display: none;">

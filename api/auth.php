@@ -18,6 +18,10 @@ switch ($request_method) {
             loginUser();
         } elseif ($action === 'logout') {
             logoutUser();
+        } elseif ($action === 'change_password') {
+            changePassword();
+        } elseif ($action === 'delete_account') {
+            deleteAccount();
         } else {
             http_response_code(400);
             die(jsonResponse(false, 'Invalid action'));
@@ -339,4 +343,111 @@ function createSampleNotes($user_id) {
     $stmt->close();
 }
 
-?>
+/**
+ * Change user password
+ */
+function changePassword() {
+    global $mysqli;
+    
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401);
+        die(jsonResponse(false, 'Unauthorized'));
+    }
+
+    $current_password = isset($_POST['current_password']) ? $_POST['current_password'] : '';
+    $new_password = isset($_POST['new_password']) ? $_POST['new_password'] : '';
+
+    if (empty($current_password) || empty($new_password)) {
+        http_response_code(400);
+        die(jsonResponse(false, 'Missing required fields'));
+    }
+
+    if (strlen($new_password) < 6) {
+        http_response_code(400);
+        die(jsonResponse(false, 'Password must be at least 6 characters'));
+    }
+
+    $user_id = $_SESSION['user_id'];
+
+    // Verify current password
+    $stmt = $mysqli->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        http_response_code(404);
+        die(jsonResponse(false, 'User not found'));
+    }
+
+    $user = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!password_verify($current_password, $user['password'])) {
+        http_response_code(401);
+        die(jsonResponse(false, 'Current password is incorrect'));
+    }
+
+    // Update password
+    $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+    $stmt = $mysqli->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt->bind_param('si', $hashed_password, $user_id);
+
+    if ($stmt->execute()) {
+        $stmt->close();
+        jsonResponse(true, 'Password changed successfully');
+    } else {
+        $stmt->close();
+        http_response_code(500);
+        die(jsonResponse(false, 'Failed to change password'));
+    }
+}
+
+/**
+ * Delete user account and all associated data
+ */
+function deleteAccount() {
+    global $mysqli;
+
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401);
+        die(jsonResponse(false, 'Unauthorized'));
+    }
+
+    $user_id = $_SESSION['user_id'];
+
+    // Start transaction
+    $mysqli->begin_transaction();
+
+    try {
+        // Delete all notes for the user
+        $stmt = $mysqli->prepare("DELETE FROM notes WHERE user_id = ?");
+        $stmt->bind_param('i', $user_id);
+        if (!$stmt->execute()) {
+            throw new Exception('Failed to delete notes');
+        }
+        $stmt->close();
+
+        // Delete user record
+        $stmt = $mysqli->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->bind_param('i', $user_id);
+        if (!$stmt->execute()) {
+            throw new Exception('Failed to delete user');
+        }
+        $stmt->close();
+
+        // Commit transaction
+        $mysqli->commit();
+
+        // Destroy session
+        session_destroy();
+
+        jsonResponse(true, 'Account deleted successfully');
+    } catch (Exception $e) {
+        // Rollback transaction
+        $mysqli->rollback();
+        http_response_code(500);
+        die(jsonResponse(false, 'Failed to delete account: ' . $e->getMessage()));
+    }
+}
+

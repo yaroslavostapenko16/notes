@@ -26,6 +26,12 @@ switch ($request_method) {
             getNote($user_id);
         } elseif ($action === 'search') {
             searchNotes($user_id);
+        } elseif ($action === 'get_all') {
+            getAllNotesForExport($user_id);
+        } elseif ($action === 'analytics') {
+            getAnalytics($user_id);
+        } elseif ($action === 'statistics') {
+            getNoteStatisticsByPeriod($user_id);
         } else {
             http_response_code(400);
             die(jsonResponse(false, 'Invalid action'));
@@ -35,6 +41,10 @@ switch ($request_method) {
     case 'POST':
         if ($action === 'create') {
             createNote($user_id);
+        } elseif ($action === 'restore_multiple') {
+            restoreMultipleNotes($user_id);
+        } elseif ($action === 'archive_multiple') {
+            archiveMultipleNotes($user_id);
         } else {
             http_response_code(400);
             die(jsonResponse(false, 'Invalid action'));
@@ -61,6 +71,8 @@ switch ($request_method) {
             restoreNote($user_id);
         } elseif ($action === 'permanent_delete') {
             permanentDeleteNote($user_id);
+        } elseif ($action === 'delete_multiple') {
+            deleteMultipleNotes($user_id);
         } else {
             http_response_code(400);
             die(jsonResponse(false, 'Invalid action'));
@@ -586,4 +598,253 @@ function logNoteHistory($note_id, $user_id, $content, $title, $action) {
     }
 }
 
-?>
+/**
+ * Get analytics data for user's notes
+ */
+function getAnalytics($user_id) {
+    global $mysqli;
+
+    $stmt = $mysqli->prepare("
+        SELECT 
+            COUNT(*) as total_notes,
+            SUM(CASE WHEN is_pinned = 1 THEN 1 ELSE 0 END) as pinned_notes,
+            SUM(CASE WHEN is_archived = 1 THEN 1 ELSE 0 END) as archived_notes,
+            SUM(CHAR_LENGTH(content)) as total_characters,
+            SUM(CHAR_LENGTH(content) - CHAR_LENGTH(REPLACE(content, ' ', '')) + 1) as total_words,
+            MAX(updated_at) as last_modified,
+            color
+        FROM notes
+        WHERE user_id = ? AND is_deleted = 0
+        GROUP BY color
+    ");
+
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $analytics = [
+        'total_notes' => 0,
+        'pinned_notes' => 0,
+        'archived_notes' => 0,
+        'total_characters' => 0,
+        'total_words' => 0,
+        'last_modified' => null,
+        'color_distribution' => []
+    ];
+
+    while ($row = $result->fetch_assoc()) {
+        $analytics['total_notes'] += $row['total_notes'];
+        $analytics['pinned_notes'] += $row['pinned_notes'] ?? 0;
+        $analytics['archived_notes'] += $row['archived_notes'] ?? 0;
+        $analytics['total_characters'] += $row['total_characters'] ?? 0;
+        $analytics['total_words'] += $row['total_words'] ?? 0;
+        if ($row['last_modified']) {
+            $analytics['last_modified'] = $row['last_modified'];
+        }
+        
+        if ($row['color']) {
+            $analytics['color_distribution'][$row['color']] = $row['total_notes'];
+        }
+    }
+
+    $stmt->close();
+    jsonResponse(true, 'Analytics retrieved successfully', $analytics);
+}
+
+/**
+ * Get all notes including deleted (for use in exports)
+ */
+function getAllNotesForExport($user_id) {
+    global $mysqli;
+
+    $stmt = $mysqli->prepare("
+        SELECT id, title, content, color, is_pinned, is_archived, created_at, updated_at
+        FROM notes
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    ");
+
+    if (!$stmt) {
+        http_response_code(500);
+        die(jsonResponse(false, 'Database error: ' . $mysqli->error));
+    }
+
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $notes = [];
+
+    while ($note = $result->fetch_assoc()) {
+        $notes[] = [
+            'id' => $note['id'],
+            'title' => $note['title'],
+            'content' => $note['content'],
+            'color' => $note['color'],
+            'is_pinned' => (bool)$note['is_pinned'],
+            'is_archived' => (bool)$note['is_archived'],
+            'created_at' => $note['created_at'],
+            'updated_at' => $note['updated_at']
+        ];
+    }
+
+    $stmt->close();
+    jsonResponse(true, 'Notes retrieved for export', $notes);
+}
+
+/**
+ * Restore multiple notes at once
+ */
+function restoreMultipleNotes($user_id) {
+    global $mysqli;
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($input['note_ids']) || !is_array($input['note_ids'])) {
+        http_response_code(400);
+        die(jsonResponse(false, 'Invalid note IDs'));
+    }
+
+    $note_ids = $input['note_ids'];
+    $success_count = 0;
+
+    foreach ($note_ids as $note_id) {
+        $stmt = $mysqli->prepare("
+            UPDATE notes 
+            SET is_deleted = 0, updated_at = NOW()
+            WHERE id = ? AND user_id = ? AND is_deleted = 1
+        ");
+
+        if ($stmt) {
+            $stmt->bind_param('ii', $note_id, $user_id);
+            if ($stmt->execute() && $stmt->affected_rows > 0) {
+                $success_count++;
+            }
+            $stmt->close();
+        }
+    }
+
+    if ($success_count > 0) {
+        jsonResponse(true, $success_count . ' note(s) restored successfully');
+    } else {
+        http_response_code(400);
+        die(jsonResponse(false, 'No notes were restored'));
+    }
+}
+
+/**
+ * Delete multiple notes permanently
+ */
+function deleteMultipleNotes($user_id) {
+    global $mysqli;
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($input['note_ids']) || !is_array($input['note_ids'])) {
+        http_response_code(400);
+        die(jsonResponse(false, 'Invalid note IDs'));
+    }
+
+    $note_ids = $input['note_ids'];
+    $success_count = 0;
+
+    foreach ($note_ids as $note_id) {
+        $stmt = $mysqli->prepare("
+            DELETE FROM notes 
+            WHERE id = ? AND user_id = ? AND is_deleted = 1
+        ");
+
+        if ($stmt) {
+            $stmt->bind_param('ii', $note_id, $user_id);
+            if ($stmt->execute() && $stmt->affected_rows > 0) {
+                $success_count++;
+            }
+            $stmt->close();
+        }
+    }
+
+    if ($success_count > 0) {
+        jsonResponse(true, $success_count . ' note(s) permanently deleted');
+    } else {
+        http_response_code(400);
+        die(jsonResponse(false, 'No notes were deleted'));
+    }
+}
+
+/**
+ * Archive multiple notes at once
+ */
+function archiveMultipleNotes($user_id) {
+    global $mysqli;
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($input['note_ids']) || !is_array($input['note_ids'])) {
+        http_response_code(400);
+        die(jsonResponse(false, 'Invalid note IDs'));
+    }
+
+    $note_ids = $input['note_ids'];
+    $success_count = 0;
+
+    foreach ($note_ids as $note_id) {
+        $stmt = $mysqli->prepare("
+            UPDATE notes 
+            SET is_archived = 1, updated_at = NOW()
+            WHERE id = ? AND user_id = ? AND is_deleted = 0
+        ");
+
+        if ($stmt) {
+            $stmt->bind_param('ii', $note_id, $user_id);
+            if ($stmt->execute() && $stmt->affected_rows > 0) {
+                $success_count++;
+            }
+            $stmt->close();
+        }
+    }
+
+    if ($success_count > 0) {
+        jsonResponse(true, $success_count . ' note(s) archived');
+    } else {
+        http_response_code(400);
+        die(jsonResponse(false, 'No notes were archived'));
+    }
+}
+
+/**
+ * Get notes statistics by time period
+ */
+function getNoteStatisticsByPeriod($user_id) {
+    global $mysqli;
+
+    $stmt = $mysqli->prepare("
+        SELECT 
+            DATE(created_at) as date,
+            COUNT(*) as count,
+            SUM(CHAR_LENGTH(content)) as characters
+        FROM notes
+        WHERE user_id = ? AND is_deleted = 0
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+    ");
+
+    if (!$stmt) {
+        http_response_code(500);
+        die(jsonResponse(false, 'Database error: ' . $mysqli->error));
+    }
+
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $stats = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $stats[] = $row;
+    }
+
+    $stmt->close();
+    jsonResponse(true, 'Statistics retrieved successfully', $stats);
+}
+

@@ -1085,6 +1085,487 @@ renderNotes = function() {
     onNotesChanged();
 };
 
+// ====================
+// Advanced Features
+// ====================
+
+/**
+ * Calculate and display analytics
+ */
+function showAnalytics() {
+    const modal = document.getElementById('analyticsModal');
+    if (!modal) return;
+
+    const stats = calculateAnalytics();
+    
+    document.getElementById('totalNotesCount').textContent = stats.totalNotes;
+    document.getElementById('pinnedNotesCount').textContent = stats.pinnedNotes;
+    document.getElementById('archivedNotesCount').textContent = stats.archivedNotes;
+    document.getElementById('totalCharacters').textContent = stats.totalCharacters;
+    document.getElementById('totalWords').textContent = stats.totalWords;
+    document.getElementById('lastModifiedDate').textContent = stats.lastModified;
+    
+    displayColorStats(stats.colorDistribution);
+    openModal('analyticsModal');
+}
+
+/**
+ * Calculate analytics data from all notes
+ */
+function calculateAnalytics() {
+    let totalNotes = 0;
+    let pinnedNotes = 0;
+    let archivedNotes = 0;
+    let totalCharacters = 0;
+    let totalWords = 0;
+    let lastModified = 'Never';
+    const colorDistribution = {};
+
+    fetch(`${API_BASE}/notes.php?action=get_all`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const notes = data.data;
+                
+                notes.forEach(note => {
+                    totalNotes++;
+                    if (note.is_pinned) pinnedNotes++;
+                    if (note.is_archived) archivedNotes++;
+                    
+                    totalCharacters += (note.content || '').length;
+                    totalWords += (note.content || '').trim().split(/\s+/).length;
+                    
+                    const color = note.color || '#FFFFFF';
+                    colorDistribution[color] = (colorDistribution[color] || 0) + 1;
+                    
+                    if (note.updated_at) {
+                        lastModified = new Date(note.updated_at).toLocaleDateString();
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Analytics error:', error));
+
+    return {
+        totalNotes,
+        pinnedNotes,
+        archivedNotes,
+        totalCharacters,
+        totalWords,
+        lastModified,
+        colorDistribution
+    };
+}
+
+/**
+ * Display color statistics chart
+ */
+function displayColorStats(colorDistribution) {
+    const container = document.getElementById('colorStats');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const colorNames = {
+        '#FFFFFF': 'White',
+        '#FFE082': 'Yellow',
+        '#C5E1A5': 'Green',
+        '#B3E5FC': 'Blue',
+        '#F8BBD0': 'Pink',
+        '#FFCCBC': 'Orange',
+        '#E1BEE7': 'Purple',
+        '#ECEFF1': 'Gray'
+    };
+
+    for (const [color, count] of Object.entries(colorDistribution)) {
+        const stat = document.createElement('div');
+        stat.className = 'color-stat-item';
+        stat.innerHTML = `
+            <div class="color-stat-color" style="background-color: ${color}"></div>
+            <div class="color-stat-info">
+                <span>${colorNames[color]}</span>
+                <strong>${count} note${count !== 1 ? 's' : ''}</strong>
+            </div>
+        `;
+        container.appendChild(stat);
+    }
+}
+
+/**
+ * Export notes as JSON
+ */
+function exportNotesAsJSON() {
+    fetch(`${API_BASE}/notes.php?action=get_all`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const json = JSON.stringify(data.data, null, 2);
+                downloadFile(json, 'notes-export.json', 'application/json');
+                showNotification('Notes exported as JSON', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            showNotification('Error exporting notes', 'error');
+        });
+}
+
+/**
+ * Export notes as CSV
+ */
+function exportNotesAsCSV() {
+    fetch(`${API_BASE}/notes.php?action=get_all`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let csv = 'Title,Created Date,Modified Date,Character Count,Status\n';
+                
+                data.data.forEach(note => {
+                    const title = (note.title || '').replace(/"/g, '""');
+                    const created = new Date(note.created_at).toLocaleDateString();
+                    const modified = new Date(note.updated_at).toLocaleDateString();
+                    const charCount = note.content ? note.content.length : 0;
+                    const status = note.is_archived ? 'Archived' : (note.is_pinned ? 'Pinned' : 'Active');
+                    
+                    csv += `"${title}","${created}","${modified}",${charCount},"${status}"\n`;
+                });
+                
+                downloadFile(csv, 'notes-export.csv', 'text/csv');
+                showNotification('Notes exported as CSV', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            showNotification('Error exporting notes', 'error');
+        });
+}
+
+/**
+ * Export notes as plain text
+ */
+function exportNotesAsText() {
+    fetch(`${API_BASE}/notes.php?action=get_all`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let text = 'NOTES EXPORT\n';
+                text += '='.repeat(50) + '\n';
+                text += `Generated: ${new Date().toLocaleString()}\n`;
+                text += '='.repeat(50) + '\n\n';
+                
+                data.data.forEach((note, index) => {
+                    text += `${index + 1}. ${note.title || 'Untitled'}\n`;
+                    text += '-'.repeat(40) + '\n';
+                    text += `${note.content || ''}\n`;
+                    text += `Created: ${new Date(note.created_at).toLocaleString()}\n`;
+                    text += `Modified: ${new Date(note.updated_at).toLocaleString()}\n`;
+                    text += '\n\n';
+                });
+                
+                downloadFile(text, 'notes-export.txt', 'text/plain');
+                showNotification('Notes exported as Text', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            showNotification('Error exporting notes', 'error');
+        });
+}
+
+/**
+ * Helper function to download file
+ */
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+/**
+ * Show settings modal
+ */
+function showSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+
+    if (currentUser) {
+        document.getElementById('settingsUsername').value = currentUser.username;
+        document.getElementById('settingsEmail').value = currentUser.email;
+    }
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const autoSaveToggle = document.getElementById('autoSaveToggle');
+    const notificationsToggle = document.getElementById('notificationsToggle');
+
+    if (darkModeToggle) {
+        darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+    }
+
+    if (autoSaveToggle) {
+        autoSaveToggle.checked = localStorage.getItem('autoSave') !== 'false';
+        autoSaveToggle.addEventListener('change', (e) => {
+            localStorage.setItem('autoSave', e.target.checked);
+        });
+    }
+
+    if (notificationsToggle) {
+        notificationsToggle.checked = localStorage.getItem('notifications') !== 'false';
+        notificationsToggle.addEventListener('change', (e) => {
+            localStorage.setItem('notifications', e.target.checked);
+        });
+    }
+
+    openModal('settingsModal');
+}
+
+/**
+ * Toggle dark mode
+ */
+function toggleDarkMode() {
+    const isDarkMode = document.getElementById('darkModeToggle').checked;
+    localStorage.setItem('darkMode', isDarkMode);
+    
+    if (isDarkMode) {
+        document.documentElement.style.colorScheme = 'dark';
+        document.body.classList.add('dark-mode');
+    } else {
+        document.documentElement.style.colorScheme = 'light';
+        document.body.classList.remove('dark-mode');
+    }
+    
+    showNotification(isDarkMode ? 'Dark mode enabled' : 'Dark mode disabled', 'info');
+}
+
+/**
+ * Open change password dialog
+ */
+function changePassword() {
+    openModal('changePasswordModal');
+}
+
+/**
+ * Submit password change
+ */
+function submitChangePassword(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+    if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('action', 'change_password');
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+
+    fetch(`${API_BASE}/auth.php`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Password changed successfully', 'success');
+            closeModal('changePasswordModal');
+            document.getElementById('changePasswordForm').reset();
+        } else {
+            showNotification(data.message || 'Error changing password', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Password change error:', error);
+        showNotification('Error changing password', 'error');
+    });
+}
+
+/**
+ * Open delete account dialog
+ */
+function openDeleteAccountDialog() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone. All your notes will be permanently deleted.')) {
+        if (confirm('This is your last chance. Type "DELETE" to confirm account deletion.')) {
+            const response = prompt('Type "DELETE" to confirm:');
+            if (response === 'DELETE') {
+                deleteAccount();
+            }
+        }
+    }
+}
+
+/**
+ * Delete user account
+ */
+function deleteAccount() {
+    fetch(`${API_BASE}/auth.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=delete_account'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Account deleted successfully', 'success');
+            setTimeout(() => {
+                window.location.href = './index.html';
+            }, 2000);
+        } else {
+            showNotification(data.message || 'Error deleting account', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Delete account error:', error);
+        showNotification('Error deleting account', 'error');
+    });
+}
+
+/**
+ * Setup keyboard shortcuts
+ */
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+N: New note
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            createNewNote();
+        }
+        // Ctrl+S: Save current note
+        else if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveCurrentNote();
+        }
+        // Ctrl+F: Focus search
+        else if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.focus();
+        }
+        // Ctrl+/: Show shortcuts
+        else if (e.ctrlKey && e.key === '/') {
+            e.preventDefault();
+            showHelpModal();
+        }
+        // Escape: Close modal
+        else if (e.key === 'Escape') {
+            closeAllModals();
+        }
+        // Ctrl+P: Toggle pin
+        else if (e.ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            togglePinCurrentNote();
+        }
+        // Ctrl+A: Archive note
+        else if (e.ctrlKey && e.key === 'a' && currentEditingNote.id) {
+            e.preventDefault();
+            toggleArchiveCurrentNote();
+        }
+    });
+}
+
+/**
+ * Save current note
+ */
+function saveCurrentNote() {
+    const saveBtn = document.getElementById('saveNoteBtn');
+    if (saveBtn) saveBtn.click();
+}
+
+/**
+ * Toggle pin on current note
+ */
+function togglePinCurrentNote() {
+    const pinBtn = document.getElementById('pinNoteBtn');
+    if (pinBtn) pinBtn.click();
+}
+
+/**
+ * Toggle archive on current note
+ */
+function toggleArchiveCurrentNote() {
+    const archiveBtn = document.getElementById('archiveNoteBtn');
+    if (archiveBtn) archiveBtn.click();
+}
+
+/**
+ * Show help modal
+ */
+function showHelpModal() {
+    openModal('helpModal');
+}
+
+/**
+ * Helper function to open modal
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/**
+ * Helper function to close modal
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+/**
+ * Close all modals
+ */
+function closeAllModals() {
+    ['analyticsModal', 'settingsModal', 'helpModal', 'changePasswordModal', 'noteEditorModal'].forEach(modalId => {
+        closeModal(modalId);
+    });
+}
+
+// Initialize keyboard shortcuts when app loads
+document.addEventListener('DOMContentLoaded', setupKeyboardShortcuts);
+
+// Modal close buttons
+document.addEventListener('DOMContentLoaded', () => {
+    ['analyticsModal', 'settingsModal', 'helpModal', 'changePasswordModal'].forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+        }
+    });
+
+    // Setup navigation buttons for new features
+    const analyticsNavBtn = document.getElementById('analyticsNavBtn');
+    const settingsNavBtn = document.getElementById('settingsNavBtn');
+    const helpNavBtn = document.getElementById('helpNavBtn');
+
+    if (analyticsNavBtn) analyticsNavBtn.addEventListener('click', showAnalytics);
+    if (settingsNavBtn) settingsNavBtn.addEventListener('click', showSettings);
+    if (helpNavBtn) helpNavBtn.addEventListener('click', showHelpModal);
+});
+
 console.log('Notes Application Loaded - Ready for use');
-console.log('Version: 1.0.0');
-console.log('Features: Create, Edit, Delete, Archive, Pin, Search notes');
+console.log('Version: 2.0.0');
+console.log('Features: Create, Edit, Delete, Archive, Pin, Search, Analytics, Settings, Export');
+console.log('Keyboard Shortcuts: Ctrl+N (New), Ctrl+S (Save), Ctrl+F (Search), Ctrl+/ (Help)');
