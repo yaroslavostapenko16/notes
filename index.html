@@ -553,6 +553,370 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display: none;">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="btn-close" onclick="closeModal('settingsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="general">General</button>
+                        <button class="tab-btn" data-tab="appearance">Appearance</button>
+                        <button class="tab-btn" data-tab="security">Security</button>
+                        <button class="tab-btn" data-tab="advanced">Advanced</button>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="tab-content active" id="general-tab">
+                        <div class="settings-item">
+                            <label>Notification Preferences</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifAutoSave" checked>
+                                    <span>Auto-save notifications</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifChanges" checked>
+                                    <span>Notify on changes</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <label>Auto-Save Interval</label>
+                            <select id="autoSaveInterval">
+                                <option value="2">Every 2 seconds</option>
+                                <option value="5">Every 5 seconds</option>
+                                <option value="10">Every 10 seconds</option>
+                                <option value="30">Every 30 seconds</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <label>Notes Per Page</label>
+                            <input type="number" id="notesPerPage" min="5" max="50" value="12">
+                        </div>
+                    </div>
+
+                    <!-- Appearance Settings -->
+                    <div class="tab-content" id="appearance-tab">
+                        <div class="settings-item">
+                            <label>Theme</label>
+                            <div class="theme-selector">
+                                <button class="theme-option" data-theme="light" title="Light Theme">
+                                    <i class="fas fa-sun"></i>
+                                    <span>Light</span>
+                                </button>
+                                <button class="theme-option" data-theme="dark" title="Dark Theme">
+                                    <i class="fas fa-moon"></i>
+                                    <span>Dark</span>
+                                </button>
+                                <button class="theme-option" data-theme="auto" title="Auto Theme">
+                                    <i class="fas fa-adjust"></i>
+                                    <span>Auto</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <label>Font Size</label>
+                            <div class="font-size-selector">
+                                <button class="font-btn" data-size="small">A</button>
+                                <button class="font-btn active" data-size="normal">A</button>
+                                <button class="font-btn" data-size="large">A</button>
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <label>Editor Layout</label>
+                            <div class="layout-selector">
+                                <button class="layout-btn active" data-layout="grid">
+                                    <i class="fas fa-th"></i> Grid
+                                </button>
+                                <button class="layout-btn" data-layout="list">
+                                    <i class="fas fa-list"></i> List
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="tab-content" id="security-tab">
+                        <div class="settings-item">
+                            <label>Change Password</label>
+                            <button class="btn btn-secondary" id="changePasswordBtn">
+                                <i class="fas fa-lock"></i> Change Password
+                            </button>
+                        </div>
+                        <div class="settings-item">
+                            <label>Session Management</label>
+                            <button class="btn btn-secondary" id="logoutAllBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout All Sessions
+                            </button>
+                        </div>
+                        <div class="settings-item">
+                            <label>Two-Factor Authentication</label>
+                            <button class="btn btn-secondary" id="enable2FABtn">
+                                <i class="fas fa-shield-alt"></i> Enable 2FA
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="tab-content" id="advanced-tab">
+                        <div class="settings-item">
+                            <label>Data Management</label>
+                            <div class="button-group">
+                                <button class="btn btn-secondary" id="exportDataBtn">
+                                    <i class="fas fa-download"></i> Export Data
+                                </button>
+                                <button class="btn btn-secondary" id="importDataBtn">
+                                    <i class="fas fa-upload"></i> Import Data
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <label>Cache & Storage</label>
+                            <button class="btn btn-secondary" id="clearCacheBtn">
+                                <i class="fas fa-trash"></i> Clear Cache
+                            </button>
+                            <small id="cacheInfo" class="info-text">Cache size: calculating...</small>
+                        </div>
+                        <div class="settings-item">
+                            <label>Danger Zone</label>
+                            <button class="btn btn-danger" id="deleteAccountBtn">
+                                <i class="fas fa-exclamation-triangle"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="modal" style="display: none;">
+        <div class="modal-content analytics-modal">
+            <div class="modal-header">
+                <h2>Analytics & Statistics</h2>
+                <button class="btn-close" onclick="closeModal('analyticsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h3>Total Notes</h3>
+                            <p class="analytics-value" id="totalNotesCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-thumbtack"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h3>Pinned Notes</h3>
+                            <p class="analytics-value" id="pinnedNotesCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h3>Archived Notes</h3>
+                            <p class="analytics-value" id="archivedNotesCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="analytics-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="analytics-content">
+                            <h3>Last Modified</h3>
+                            <p class="analytics-value" id="lastModifiedTime">N/A</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-section">
+                    <h3>Notes by Color</h3>
+                    <div id="colorDistribution" class="color-distribution"></div>
+                </div>
+
+                <div class="analytics-section">
+                    <h3>Activity Timeline</h3>
+                    <div id="activityTimeline" class="activity-timeline"></div>
+                </div>
+
+                <div class="analytics-section">
+                    <h3>Storage Usage</h3>
+                    <div class="storage-info">
+                        <div class="storage-bar">
+                            <div class="storage-used" id="storageUsed" style="width: 30%;"></div>
+                        </div>
+                        <p id="storageText">Used: 0 KB / 10 MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help & Shortcuts Modal -->
+    <div id="helpModal" class="modal" style="display: none;">
+        <div class="modal-content help-modal large">
+            <div class="modal-header">
+                <h2>Help & Keyboard Shortcuts</h2>
+                <button class="btn-close" onclick="closeModal('helpModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="help-content">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="shortcuts-list">
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd> + <kbd>N</kbd>
+                            </div>
+                            <div class="shortcut-desc">Create new note</div>
+                        </div>
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                            </div>
+                            <div class="shortcut-desc">Save current note</div>
+                        </div>
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd> + <kbd>/</kbd>
+                            </div>
+                            <div class="shortcut-desc">Open search</div>
+                        </div>
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd> + <kbd>B</kbd>
+                            </div>
+                            <div class="shortcut-desc">Toggle bold</div>
+                        </div>
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd> + <kbd>I</kbd>
+                            </div>
+                            <div class="shortcut-desc">Toggle italic</div>
+                        </div>
+                        <div class="shortcut-item">
+                            <div class="shortcut-keys">
+                                <kbd>Escape</kbd>
+                            </div>
+                            <div class="shortcut-desc">Close modal or cancel</div>
+                        </div>
+                    </div>
+
+                    <h3>Getting Started</h3>
+                    <div class="help-section">
+                        <h4>Creating Notes</h4>
+                        <p>Click the "New Note" button or press Ctrl+N to create a new note. You can add a title, content, and choose a color.</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h4>Organizing Notes</h4>
+                        <p>Use colors to organize your notes by category or project. Pin important notes to keep them at the top. Archive old notes to keep your view clean.</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h4>Searching Notes</h4>
+                        <p>Use the search bar at the top to quickly find notes by title or content. Search is case-insensitive and updates in real-time.</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h4>Tips & Tricks</h4>
+                        <ul>
+                            <li>Use hashtags (#) in your notes to categorize them</li>
+                            <li>Drag and drop notes to reorder them</li>
+                            <li>Click a note to open it in the editor</li>
+                            <li>Auto-save keeps your changes safe automatically</li>
+                            <li>Access your notes from any device with your account</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Switcher Toast -->
+    <div id="themeSwitcher" class="theme-switcher">
+        <button id="themeSwitcherBtn" class="btn-icon" title="Toggle theme">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <!-- Quick Action Bar -->
+    <div id="quickActionBar" class="quick-action-bar" style="display: none;">
+        <div class="quick-actions">
+            <button class="quick-action-btn" id="quickNewNote" title="New Note (Ctrl+N)">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="quick-action-btn" id="quickSearch" title="Search (Ctrl+/)">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="quick-action-btn" id="quickSync" title="Sync Notes">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div id="advancedSearchPanel" class="advanced-search-panel" style="display: none;">
+        <div class="search-filters">
+            <div class="filter-group">
+                <label>Color Filter</label>
+                <div class="color-filter-buttons">
+                    <button class="color-filter-btn" data-color="">All Colors</button>
+                    <button class="color-filter-btn" data-color="#FFFFFF">White</button>
+                    <button class="color-filter-btn" data-color="#FFEB3B">Yellow</button>
+                    <button class="color-filter-btn" data-color="#81C784">Green</button>
+                    <button class="color-filter-btn" data-color="#64B5F6">Blue</button>
+                    <button class="color-filter-btn" data-color="#F8BBD0">Pink</button>
+                    <button class="color-filter-btn" data-color="#FFCCBC">Orange</button>
+                    <button class="color-filter-btn" data-color="#E1BEE7">Purple</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>Status Filter</label>
+                <div class="status-filter-buttons">
+                    <button class="status-filter-btn active" data-status="">All</button>
+                    <button class="status-filter-btn" data-status="pinned">Pinned Only</button>
+                    <button class="status-filter-btn" data-status="archived">Archived Only</button>
+                    <button class="status-filter-btn" data-status="deleted">Deleted Only</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>Date Range</label>
+                <input type="date" id="filterStartDate" placeholder="Start Date">
+                <input type="date" id="filterEndDate" placeholder="End Date">
+            </div>
+
+            <div class="filter-group">
+                <button class="btn btn-secondary" id="applyFiltersBtn">Apply Filters</button>
+                <button class="btn btn-secondary" id="clearFiltersBtn">Clear Filters</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="website-footer">
         <p><small>Created by <strong>Yaroslav Ostapenko</strong> © 2026 | All rights reserved</small></p>

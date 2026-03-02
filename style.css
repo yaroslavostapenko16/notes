@@ -1167,6 +1167,766 @@ button:focus-visible {
     outline-offset: -2px;
 }
 
+/* ====================
+   Settings Modal
+   ==================== */
+
+.settings-modal {
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+}
+
+.settings-tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.tabs-header {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: var(--transition-fast);
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--secondary-color);
+    border-bottom-color: var(--secondary-color);
+}
+
+.tab-content {
+    display: none;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-item {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.settings-item select,
+.settings-item input[type="number"],
+.settings-item input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.theme-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.theme-option {
+    padding: 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-fast);
+}
+
+.theme-option:hover {
+    border-color: var(--secondary-color);
+}
+
+.theme-option.active {
+    border-color: var(--secondary-color);
+    background: var(--secondary-color);
+    color: white;
+}
+
+.font-size-selector,
+.layout-selector {
+    display: flex;
+    gap: 10px;
+}
+
+.font-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: var(--transition-fast);
+}
+
+.font-btn:nth-child(1) {
+    font-size: 12px;
+}
+
+.font-btn:nth-child(3) {
+    font-size: 20px;
+}
+
+.font-btn:hover,
+.font-btn.active {
+    border-color: var(--secondary-color);
+    background: var(--secondary-color);
+    color: white;
+}
+
+.layout-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.layout-btn:hover {
+    border-color: var(--secondary-color);
+}
+
+.layout-btn.active {
+    border-color: var(--secondary-color);
+    background: var(--secondary-color);
+    color: white;
+}
+
+.button-group,
+.button-group-vertical {
+    display: flex;
+    gap: 10px;
+}
+
+.button-group-vertical {
+    flex-direction: column;
+}
+
+.info-text {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+/* ====================
+   Analytics Modal
+   ==================== */
+
+.analytics-modal {
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.analytics-card {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    transition: var(--transition);
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.analytics-icon {
+    font-size: 28px;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+}
+
+.analytics-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.analytics-value {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.analytics-section {
+    margin-bottom: 30px;
+}
+
+.analytics-section h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.color-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.color-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-bar {
+    flex: 1;
+    height: 20px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--secondary-color);
+    transition: var(--transition);
+}
+
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 15px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--secondary-color);
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.timeline-content h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+}
+
+.timeline-content small {
+    color: var(--text-tertiary);
+}
+
+.storage-info {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.storage-bar {
+    height: 30px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.storage-used {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary-color), var(--success-color));
+    transition: var(--transition);
+}
+
+/* ====================
+   Help Modal
+   ==================== */
+
+.help-modal {
+    width: 90%;
+    max-width: 900px;
+}
+
+.help-modal.large {
+    max-height: 85vh;
+}
+
+.help-content {
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.shortcuts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    border-left: 3px solid var(--secondary-color);
+}
+
+.shortcut-keys {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.shortcut-keys kbd {
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.shortcut-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.help-section {
+    margin-bottom: 25px;
+}
+
+.help-section h4 {
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+}
+
+.help-section p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.help-section ul {
+    margin: 10px 0 10px 20px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+}
+
+/* ====================
+   Theme Switcher Toast
+   ==================== */
+
+.theme-switcher {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    z-index: 100;
+}
+
+.theme-switcher .btn-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+
+.theme-switcher .btn-icon:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+}
+
+/* ====================
+   Quick Action Bar
+   ==================== */
+
+.quick-action-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-primary);
+    padding: 12px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.quick-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+    font-size: 16px;
+}
+
+.quick-action-btn:hover {
+    background: var(--secondary-dark);
+    transform: scale(1.1);
+}
+
+/* ====================
+   Advanced Search Panel
+   ==================== */
+
+.advanced-search-panel {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 300px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.search-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.color-filter-buttons,
+.status-filter-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.color-filter-btn,
+.status-filter-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    transition: var(--transition-fast);
+}
+
+.color-filter-btn:hover,
+.status-filter-btn:hover {
+    border-color: var(--secondary-color);
+}
+
+.color-filter-btn.active,
+.status-filter-btn.active {
+    background: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+}
+
+.filter-group input[type="date"] {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.filter-group .button-group {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-group .btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .advanced-search-panel {
+        width: 100%;
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 60px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .quick-action-bar {
+        bottom: 80px;
+    }
+
+    .theme-switcher {
+        bottom: 140px;
+    }
+
+    .settings-modal,
+    .analytics-modal,
+    .help-modal {
+        width: 100%;
+        max-height: 90vh;
+    }
+}
+
+/* ====================
+   Modal Improvements
+   ==================== */
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    max-height: 90vh;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition-fast);
+}
+
+.btn-close:hover {
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.modal-footer .btn {
+    padding: 10px 20px;
+}
+
+/* ====================
+   Button Variants
+   ==================== */
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #d93a3a;
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-color);
+}
+
+/* ====================
+   List View Layout
+   ==================== */
+
+.notes-container.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notes-container.list-view .note-card {
+    display: flex;
+    align-items: center;
+    height: auto;
+    min-height: 80px;
+    padding: 15px 20px;
+}
+
+.notes-container.list-view .note-title {
+    margin-bottom: 5px;
+}
+
+.notes-container.list-view .note-preview {
+    max-width: 100%;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ====================
+   Website Footer
+   ==================== */
+
+.website-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    z-index: 10;
+}
+
+.website-footer p {
+    margin: 0;
+    padding: 0;
+}
+
+.website-footer strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .website-footer {
+        font-size: 0.75rem;
+        padding: 10px 15px;
+    }
+}
+
 /* Website Footer */
 .website-footer {
     position: fixed;

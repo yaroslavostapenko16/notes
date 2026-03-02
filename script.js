@@ -1563,9 +1563,643 @@ document.addEventListener('DOMContentLoaded', () => {
     if (analyticsNavBtn) analyticsNavBtn.addEventListener('click', showAnalytics);
     if (settingsNavBtn) settingsNavBtn.addEventListener('click', showSettings);
     if (helpNavBtn) helpNavBtn.addEventListener('click', showHelpModal);
+
+    // Setup theme switcher
+    const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
+    if (themeSwitcherBtn) {
+        themeSwitcherBtn.addEventListener('click', toggleTheme);
+    }
+
+    // Setup settings tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            openSettingsTab(tabName);
+        });
+    });
+
+    // Setup theme options in settings
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const theme = this.getAttribute('data-theme');
+            setTheme(theme);
+        });
+    });
+
+    // Setup layout options
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const layout = this.getAttribute('data-layout');
+            setLayoutMode(layout);
+        });
+    });
+
+    // Setup font size buttons
+    document.querySelectorAll('.font-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const size = this.getAttribute('data-size');
+            setFontSize(size);
+        });
+    });
+
+    // Setup settings buttons
+    document.getElementById('changePasswordBtn')?.addEventListener('click', showChangePasswordModal);
+    document.getElementById('logoutAllBtn')?.addEventListener('click', logoutAllSessions);
+    document.getElementById('enable2FABtn')?.addEventListener('click', enable2FA);
+    document.getElementById('exportDataBtn')?.addEventListener('click', exportUserData);
+    document.getElementById('importDataBtn')?.addEventListener('click', importUserData);
+    document.getElementById('clearCacheBtn')?.addEventListener('click', clearCache);
+    document.getElementById('deleteAccountBtn')?.addEventListener('click', deleteAccount);
+
+    // Setup quick action bar buttons
+    document.getElementById('quickNewNote')?.addEventListener('click', createNewNote);
+    document.getElementById('quickSearch')?.addEventListener('click', () => {
+        document.getElementById('searchInput').focus();
+    });
+    document.getElementById('quickSync')?.addEventListener('click', syncNotes);
+
+    // Setup advanced search
+    document.getElementById('applyFiltersBtn')?.addEventListener('click', applyAdvancedSearch);
+    document.getElementById('clearFiltersBtn')?.addEventListener('click', clearAdvancedSearch);
+
+    document.querySelectorAll('.color-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+    });
+
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 });
 
+// ====================
+// Settings Management
+// ====================
+
+/**
+ * Show settings modal
+ */
+function showSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadSettingsData();
+    }
+}
+
+/**
+ * Open settings tab
+ */
+function openSettingsTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    const tabContent = document.getElementById(`${tabName}-tab`);
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+
+    event.target.classList.add('active');
+}
+
+/**
+ * Load current settings data
+ */
+function loadSettingsData() {
+    const autoSaveInterval = localStorage.getItem('autoSaveInterval') || '2';
+    const notesPerPage = localStorage.getItem('notesPerPage') || '12';
+    const theme = localStorage.getItem('theme') || 'auto';
+    const fontSize = localStorage.getItem('fontSize') || 'normal';
+    const layout = localStorage.getItem('layout') || 'grid';
+
+    document.getElementById('autoSaveInterval').value = autoSaveInterval;
+    document.getElementById('notesPerPage').value = notesPerPage;
+
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-theme') === theme) {
+            btn.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.font-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-size') === fontSize) {
+            btn.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-layout') === layout) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+/**
+ * Set theme
+ */
+function setTheme(theme) {
+    localStorage.setItem('theme', theme);
+    applyTheme(theme);
+    showNotification(`Theme changed to ${theme}!`, 'success');
+}
+
+/**
+ * Apply theme to document
+ */
+function applyTheme(theme) {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', theme);
+
+    if (theme === 'dark') {
+        html.style.colorScheme = 'dark';
+    } else if (theme === 'light') {
+        html.style.colorScheme = 'light';
+    } else {
+        html.style.colorScheme = 'normal';
+    }
+}
+
+/**
+ * Toggle theme
+ */
+function toggleTheme() {
+    const currentTheme = localStorage.getItem('theme') || 'auto';
+    const themes = ['light', 'dark', 'auto'];
+    const nextIndex = (themes.indexOf(currentTheme) + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+    updateThemeSwitcherIcon();
+}
+
+/**
+ * Update theme switcher icon
+ */
+function updateThemeSwitcherIcon() {
+    const theme = localStorage.getItem('theme') || 'auto';
+    const btn = document.getElementById('themeSwitcherBtn');
+    if (btn) {
+        if (theme === 'dark') {
+            btn.innerHTML = '<i class="fas fa-sun"></i>';
+        } else if (theme === 'light') {
+            btn.innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+            btn.innerHTML = '<i class="fas fa-adjust"></i>';
+        }
+    }
+}
+
+/**
+ * Set font size
+ */
+function setFontSize(size) {
+    localStorage.setItem('fontSize', size);
+    const html = document.documentElement;
+
+    switch(size) {
+        case 'small':
+            html.style.fontSize = '12px';
+            break;
+        case 'large':
+            html.style.fontSize = '18px';
+            break;
+        default:
+            html.style.fontSize = '16px';
+    }
+
+    showNotification(`Font size changed!`, 'success');
+}
+
+/**
+ * Set layout mode
+ */
+function setLayoutMode(layout) {
+    localStorage.setItem('layout', layout);
+    currentViewMode = layout;
+    const notesGrid = document.getElementById('notesGrid');
+
+    if (notesGrid) {
+        if (layout === 'list') {
+            notesGrid.classList.add('list-view');
+            notesGrid.classList.remove('grid-view');
+        } else {
+            notesGrid.classList.remove('list-view');
+            notesGrid.classList.add('grid-view');
+        }
+    }
+
+    showNotification(`Layout changed to ${layout}!`, 'success');
+}
+
+// ====================
+// Analytics
+// ====================
+
+/**
+ * Show analytics modal
+ */
+function showAnalytics() {
+    const modal = document.getElementById('analyticsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        calculateAnalytics();
+    }
+}
+
+/**
+ * Calculate and display analytics
+ */
+function calculateAnalytics() {
+    const totalNotes = currentNotes.length;
+    const pinnedNotes = currentNotes.filter(note => note.isPinned).length;
+    const archivedNotes = currentNotes.filter(note => note.isArchived).length;
+
+    document.getElementById('totalNotesCount').textContent = totalNotes;
+    document.getElementById('pinnedNotesCount').textContent = pinnedNotes;
+    document.getElementById('archivedNotesCount').textContent = archivedNotes;
+
+    // Last modified
+    if (totalNotes > 0) {
+        const lastNote = currentNotes[0];
+        document.getElementById('lastModifiedTime').textContent = formatDate(new Date());
+    }
+
+    // Color distribution
+    generateColorDistribution();
+
+    // Activity timeline
+    generateActivityTimeline();
+
+    // Storage usage
+    calculateStorageUsage();
+}
+
+/**
+ * Generate color distribution chart
+ */
+function generateColorDistribution() {
+    const colorMap = {};
+    const colors = {
+        '#FFFFFF': 'White',
+        '#FFEB3B': 'Yellow',
+        '#81C784': 'Green',
+        '#64B5F6': 'Blue',
+        '#F8BBD0': 'Pink',
+        '#FFCCBC': 'Orange',
+        '#E1BEE7': 'Purple',
+        '#ECEFF1': 'Gray'
+    };
+
+    currentNotes.forEach(note => {
+        const color = note.color || '#FFFFFF';
+        colorMap[color] = (colorMap[color] || 0) + 1;
+    });
+
+    const container = document.getElementById('colorDistribution');
+    if (container) {
+        container.innerHTML = '';
+        Object.entries(colorMap).forEach(([color, count]) => {
+            const percent = ((count / currentNotes.length) * 100).toFixed(1);
+            const bar = document.createElement('div');
+            bar.className = 'color-bar-item';
+            bar.innerHTML = `
+                <div class="color-bar">
+                    <div class="bar-fill" style="width: ${percent}%; background-color: ${color};"></div>
+                </div>
+                <span>${colors[color]}: ${count} (${percent}%)</span>
+            `;
+            container.appendChild(bar);
+        });
+    }
+}
+
+/**
+ * Generate activity timeline
+ */
+function generateActivityTimeline() {
+    const container = document.getElementById('activityTimeline');
+    if (container) {
+        container.innerHTML = '';
+        const recentNotes = currentNotes.slice(0, 5);
+
+        recentNotes.forEach(note => {
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.innerHTML = `
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h4>${escapeHtml(note.title || 'Untitled')}</h4>
+                    <small>${formatDate(new Date(note.updatedAt || new Date()))}</small>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+}
+
+/**
+ * Calculate storage usage
+ */
+function calculateStorageUsage() {
+    let totalSize = 0;
+    const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
+
+    currentNotes.forEach(note => {
+        totalSize += (note.title?.length || 0) + (note.content?.length || 0);
+    });
+
+    const percent = ((totalSize / maxSize) * 100).toFixed(1);
+    const usedKB = (totalSize / 1024).toFixed(2);
+
+    document.getElementById('storageUsed').style.width = `${Math.min(percent, 100)}%`;
+    document.getElementById('storageText').textContent = `Used: ${usedKB} KB / 10 MB`;
+}
+
+// ====================
+// Help & Documentation
+// ====================
+
+/**
+ * Show help modal
+ */
+function showHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// ====================
+// Advanced Search & Filters
+// ====================
+
+/**
+ * Apply advanced search filters
+ */
+function applyAdvancedSearch() {
+    const selectedColors = Array.from(document.querySelectorAll('.color-filter-btn.active'))
+        .map(btn => btn.getAttribute('data-color'));
+    
+    const selectedStatus = document.querySelector('.status-filter-btn.active')?.getAttribute('data-status');
+    const startDate = new Date(document.getElementById('filterStartDate').value);
+    const endDate = new Date(document.getElementById('filterEndDate').value);
+
+    let filtered = currentNotes.filter(note => {
+        let include = true;
+
+        if (selectedColors.length > 0 && !selectedColors.includes(note.color)) {
+            include = false;
+        }
+
+        if (selectedStatus === 'pinned' && !note.isPinned) include = false;
+        if (selectedStatus === 'archived' && !note.isArchived) include = false;
+        if (selectedStatus === 'deleted' && note.isDeleted !== true) include = false;
+
+        if (!isNaN(startDate) && new Date(note.createdAt) < startDate) include = false;
+        if (!isNaN(endDate) && new Date(note.createdAt) > endDate) include = false;
+
+        return include;
+    });
+
+    displayNotes(filtered);
+    showNotification(`Found ${filtered.length} notes matching filters`, 'info');
+}
+
+/**
+ * Clear all search filters
+ */
+function clearAdvancedSearch() {
+    document.querySelectorAll('.color-filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.status-filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.status-filter-btn')?.classList.add('active');
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+
+    loadNotes();
+    showNotification('Filters cleared', 'info');
+}
+
+// ====================
+// Data Management
+// ====================
+
+/**
+ * Export user data
+ */
+function exportUserData() {
+    const dataToExport = {
+        userName: currentUser.username,
+        userEmail: currentUser.email,
+        exportDate: new Date().toISOString(),
+        notes: currentNotes,
+        settings: {
+            theme: localStorage.getItem('theme'),
+            fontSize: localStorage.getItem('fontSize'),
+            layout: localStorage.getItem('layout'),
+            autoSaveInterval: localStorage.getItem('autoSaveInterval')
+        }
+    };
+
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `notes-export-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showNotification('Data exported successfully!', 'success');
+}
+
+/**
+ * Import user data
+ */
+function importUserData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                if (data.notes && Array.isArray(data.notes)) {
+                    // Import notes via API
+                    data.notes.forEach(note => {
+                        saveNote(note.id, note.title, note.content, note.color, note.isPinned);
+                    });
+                    showNotification(`Imported ${data.notes.length} notes!`, 'success');
+                    loadNotes();
+                } else {
+                    showNotification('Invalid file format', 'error');
+                }
+            } catch (error) {
+                showNotification('Error importing data: ' + error.message, 'error');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+/**
+ * Clear application cache
+ */
+function clearCache() {
+    if (confirm('Are you sure you want to clear the cache? This will remove temporarily stored data.')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => caches.delete(name));
+            });
+        }
+        showNotification('Cache cleared successfully!', 'success');
+    }
+}
+
+/**
+ * Delete user account
+ */
+function deleteAccount() {
+    if (confirm('Are you absolutely sure? This action cannot be undone and will permanently delete your account and all notes.')) {
+        if (confirm('Type your username to confirm deletion.')) {
+            const username = prompt('Enter your username to confirm:');
+            if (username === currentUser.username) {
+                fetch(`${API_BASE}/auth.php?action=delete_account`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Account deleted successfully', 'success');
+                        setTimeout(() => logout(), 2000);
+                    }
+                });
+            }
+        }
+    }
+}
+
+/**
+ * Logout all sessions
+ */
+function logoutAllSessions() {
+    if (confirm('This will logout all your sessions on other devices.')) {
+        fetch(`${API_BASE}/auth.php?action=logout_all`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Logged out from all sessions!', 'success');
+            }
+        });
+    }
+}
+
+/**
+ * Enable two-factor authentication
+ */
+function enable2FA() {
+    alert('Two-factor authentication setup would open a modal with QR code generation.');
+    showNotification('2FA feature coming soon!', 'info');
+}
+
+/**
+ * Show change password modal
+ */
+function showChangePasswordModal() {
+    const currentPassword = prompt('Enter your current password:');
+    if (!currentPassword) return;
+
+    const newPassword = prompt('Enter your new password (min 6 characters):');
+    if (!newPassword || newPassword.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+
+    const confirmPassword = prompt('Confirm your new password:');
+    if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+    }
+
+    fetch(`${API_BASE}/auth.php?action=change_password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            currentPassword,
+            newPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Password changed successfully!', 'success');
+        } else {
+            showNotification(data.message || 'Error changing password', 'error');
+        }
+    });
+}
+
+/**
+ * Sync notes
+ */
+function syncNotes() {
+    showNotification('Syncing notes...', 'info');
+    loadNotes();
+}
+
+// ====================
+// Utility Functions
+// ====================
+
+/**
+ * Format date to readable string
+ */
+function formatDate(date) {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+    } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 console.log('Notes Application Loaded - Ready for use');
-console.log('Version: 2.0.0');
-console.log('Features: Create, Edit, Delete, Archive, Pin, Search, Analytics, Settings, Export');
-console.log('Keyboard Shortcuts: Ctrl+N (New), Ctrl+S (Save), Ctrl+F (Search), Ctrl+/ (Help)');
+console.log('Version: 2.5.0');
+console.log('Features: Create, Edit, Delete, Archive, Pin, Search, Analytics, Settings, Export, Theme, Advanced Filters');
+console.log('Keyboard Shortcuts: Ctrl+N (New), Ctrl+S (Save), Ctrl+F (Search), Ctrl+/ (Help), Ctrl+B (Bold), Ctrl+I (Italic)');
