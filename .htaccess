@@ -12,8 +12,16 @@
     RewriteCond %{REQUEST_FILENAME} !-d
 </IfModule>
 
+# Allow robots.txt and sitemap.xml
+<FilesMatch "\.(txt|xml)$">
+    Allow from all
+</FilesMatch>
+
 # Security headers
 <IfModule mod_headers.c>
+    # Canonical URL
+    Header set Link "<https://note.websweos.com>; rel=\"canonical\""
+    
     # Allow any origin for API (can be restricted later)
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"

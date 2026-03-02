@@ -1166,3 +1166,35 @@ button:focus-visible {
     outline: 2px solid var(--secondary-color);
     outline-offset: -2px;
 }
+
+/* Website Footer */
+.website-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    z-index: 10;
+}
+
+.website-footer p {
+    margin: 0;
+    padding: 0;
+}
+
+.website-footer strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .website-footer {
+        font-size: 0.75rem;
+        padding: 10px 15px;
+    }
+}

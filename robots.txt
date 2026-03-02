@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /config.php
+Disallow: /database.sql
+Disallow: /debug.php
+Disallow: /api-test.php
+Disallow: /SETUP.html
+
+Sitemap: https://note.websweos.com/sitemap.xml
+
+Allow: /index.html
+Allow: /style.css
+Allow: /script.js
