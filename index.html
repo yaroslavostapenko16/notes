@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Notes - Google Keep Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content auth-modal">
+            <div class="auth-container">
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form active">
+                    <div class="auth-header">
+                        <h2>Login</h2>
+                        <p>Welcome back to your notes</p>
+                    </div>
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <label for="loginUsername">Username or Email</label>
+                            <input 
+                                type="text" 
+                                id="loginUsername" 
+                                name="username" 
+                                placeholder="Enter your username or email"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                name="password" 
+                                placeholder="Enter your password"
+                                required
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <div class="auth-footer">
+                            <p>Don't have an account? <a href="#" onclick="switchAuthForm(event)">Sign up</a></p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="auth-form">
+                    <div class="auth-header">
+                        <h2>Create Account</h2>
+                        <p>Start organizing your notes</p>
+                    </div>
+                    <form id="registerFormElement">
+                        <div class="form-group">
+                            <label for="regUsername">Username</label>
+                            <input 
+                                type="text" 
+                                id="regUsername" 
+                                name="username" 
+                                placeholder="Choose a username (3+ characters)"
+                                minlength="3"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email</label>
+                            <input 
+                                type="email" 
+                                id="regEmail" 
+                                name="email" 
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input 
+                                type="password" 
+                                id="regPassword" 
+                                name="password" 
+                                placeholder="Password (6+ characters)"
+                                minlength="6"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="regPasswordConfirm">Confirm Password</label>
+                            <input 
+                                type="password" 
+                                id="regPasswordConfirm" 
+                                name="password_confirm" 
+                                placeholder="Confirm your password"
+                                required
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                        <div class="auth-footer">
+                            <p>Already have an account? <a href="#" onclick="switchAuthForm(event)">Login</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Notes</span>
+                </div>
+                <button class="btn-icon" id="sidebarToggle" title="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search notes..." 
+                    class="search-box"
+                >
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <button class="nav-item active" data-view="all">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>All Notes</span>
+                    </button>
+                    <button class="nav-item" data-view="pinned">
+                        <i class="fas fa-thumbtack"></i>
+                        <span>Pinned</span>
+                    </button>
+                    <button class="nav-item" data-view="archived">
+                        <i class="fas fa-archive"></i>
+                        <span>Archived</span>
+                    </button>
+                    <button class="nav-item" data-view="deleted">
+                        <i class="fas fa-trash"></i>
+                        <span>Deleted</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <p class="user-name" id="userName">User</p>
+                        <p class="user-email" id="userEmail">email@example.com</p>
+                    </div>
+                </div>
+                <button class="btn btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 id="pageTitle">All Notes</h1>
+                </div>
+                <div class="header-right">
+                    <div class="view-options">
+                        <button class="view-btn active" id="gridViewBtn" title="Grid view">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-btn" id="listViewBtn" title="List view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" id="createNoteBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>New Note</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Notes Container -->
+            <div class="notes-container" id="notesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-sticky-note"></i>
+                    <h3>No notes yet</h3>
+                    <p>Create your first note to get started</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Note Editor Modal -->
+    <div id="noteEditorModal" class="modal">
+        <div class="modal-content note-editor">
+            <div class="editor-header">
+                <input 
+                    type="text" 
+                    id="noteTitle" 
+                    class="note-title-input" 
+                    placeholder="Title..."
+                    maxlength="255"
+                >
+                <button class="btn-icon" id="closeNoteEditorBtn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="editor-content">
+                <textarea 
+                    id="noteContent" 
+                    class="note-content-input" 
+                    placeholder="Start typing..."
+                ></textarea>
+            </div>
+
+            <div class="editor-toolbar">
+                <div class="toolbar-left">
+                    <div class="color-picker">
+                        <button class="btn-icon color-btn" title="Toggle colors" id="colorToggleBtn">
+                            <i class="fas fa-palette"></i>
+                        </button>
+                        <div class="color-palette" id="colorPalette" style="display: none;">
+                            <button class="color-option" data-color="#FFFFFF" style="background-color: #FFFFFF;" title="White"></button>
+                            <button class="color-option" data-color="#FFE082" style="background-color: #FFE082;" title="Yellow"></button>
+                            <button class="color-option" data-color="#C5E1A5" style="background-color: #C5E1A5;" title="Green"></button>
+                            <button class="color-option" data-color="#B3E5FC" style="background-color: #B3E5FC;" title="Blue"></button>
+                            <button class="color-option" data-color="#F8BBD0" style="background-color: #F8BBD0;" title="Pink"></button>
+                            <button class="color-option" data-color="#FFCCBC" style="background-color: #FFCCBC;" title="Orange"></button>
+                            <button class="color-option" data-color="#E1BEE7" style="background-color: #E1BEE7;" title="Purple"></button>
+                            <button class="color-option" data-color="#ECEFF1" style="background-color: #ECEFF1;" title="Gray"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <button class="btn-icon" id="pinNoteBtn" title="Pin note">
+                        <i class="far fa-star"></i>
+                    </button>
+                    <button class="btn-icon" id="archiveNoteBtn" title="Archive note">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                    <button class="btn-icon delete-btn" id="deleteNoteBtn" title="Delete note">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="editor-info">
+                <small id="lastModified">Last modified: just now</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
