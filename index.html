@@ -877,6 +877,296 @@
         </div>
     </div>
 
+    <!-- Note Templates Modal -->
+    <div id="templatesModal" class="modal" style="display: none;">
+        <div class="modal-content templates-modal">
+            <div class="modal-header">
+                <h2>Note Templates</h2>
+                <button class="btn-close" onclick="closeModal('templatesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="templates-grid">
+                    <div class="template-card" onclick="useTemplate('blank')">
+                        <div class="template-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>Blank Note</h3>
+                        <p>Start with an empty note</p>
+                    </div>
+
+                    <div class="template-card" onclick="useTemplate('checklist')">
+                        <div class="template-icon">
+                            <i class="fas fa-list-check"></i>
+                        </div>
+                        <h3>Checklist</h3>
+                        <p>Create a todo list</p>
+                    </div>
+
+                    <div class="template-card" onclick="useTemplate('meeting')">
+                        <div class="template-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Meeting Notes</h3>
+                        <p>Document meeting details</p>
+                    </div>
+
+                    <div class="template-card" onclick="useTemplate('daily')">
+                        <div class="template-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <h3>Daily Journal</h3>
+                        <p>Daily reflection template</p>
+                    </div>
+
+                    <div class="template-card" onclick="useTemplate('project')">
+                        <div class="template-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <h3>Project Plan</h3>
+                        <p>Organize project details</p>
+                    </div>
+
+                    <div class="template-card" onclick="useTemplate('idea')">
+                        <div class="template-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>Idea Board</h3>
+                        <p>Brainstorm and capture ideas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Labels & Tags Modal -->
+    <div id="labelsModal" class="modal" style="display: none;">
+        <div class="modal-content labels-modal">
+            <div class="modal-header">
+                <h2>Manage Labels & Tags</h2>
+                <button class="btn-close" onclick="closeModal('labelsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="label-creation">
+                    <h3>Create New Label</h3>
+                    <div class="label-input-group">
+                        <input type="text" id="newLabelName" placeholder="Label name" maxlength="20">
+                        <div class="color-picker-group">
+                            <button class="color-dot" data-color="#3b82f6" style="background: #3b82f6;"></button>
+                            <button class="color-dot" data-color="#ef4444" style="background: #ef4444;"></button>
+                            <button class="color-dot" data-color="#10b981" style="background: #10b981;"></button>
+                            <button class="color-dot" data-color="#f59e0b" style="background: #f59e0b;"></button>
+                            <button class="color-dot" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                            <button class="color-dot" data-color="#ec4899" style="background: #ec4899;"></button>
+                        </div>
+                        <button class="btn btn-primary" id="createLabelBtn">
+                            <i class="fas fa-plus"></i> Create Label
+                        </button>
+                    </div>
+                </div>
+
+                <div class="labels-list">
+                    <h3>Your Labels</h3>
+                    <div id="labelsContainer" class="labels-container"></div>
+                </div>
+
+                <div class="popular-tags">
+                    <h3>Popular Tags</h3>
+                    <div id="popularTagsContainer" class="tags-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note History Modal -->
+    <div id="historyModal" class="modal" style="display: none;">
+        <div class="modal-content history-modal">
+            <div class="modal-header">
+                <h2>Note History & Versions</h2>
+                <button class="btn-close" onclick="closeModal('historyModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="history-timeline" id="historyTimeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sharing & Collaboration Modal -->
+    <div id="sharingModal" class="modal" style="display: none;">
+        <div class="modal-content sharing-modal">
+            <div class="modal-header">
+                <h2>Share & Collaborate</h2>
+                <button class="btn-close" onclick="closeModal('sharingModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="sharing-section">
+                    <h3>Share with Link</h3>
+                    <div class="share-link-group">
+                        <input type="text" id="shareLink" class="share-link-input" readonly>
+                        <button class="btn btn-secondary" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                        <button class="btn btn-secondary" onclick="generateNewShareLink()">
+                            <i class="fas fa-refresh"></i> Generate New
+                        </button>
+                    </div>
+                    <div class="share-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="shareViewOnly">
+                            <span>View Only (No Editing)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="shareWithPassword">
+                            <span>Protect with Password</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="shareExpiresIn">
+                            <span>Expires After</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="sharing-section">
+                    <h3>Collaborators</h3>
+                    <div class="collaborators-input">
+                        <input type="email" id="collaboratorEmail" placeholder="Enter email address">
+                        <button class="btn btn-secondary" onclick="addCollaborator()">
+                            <i class="fas fa-user-plus"></i> Add
+                        </button>
+                    </div>
+                    <div id="collaboratorsList" class="collaborators-list"></div>
+                </div>
+
+                <div class="sharing-section">
+                    <h3>Activity Log</h3>
+                    <div id="activityLogContainer" class="activity-log"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rich Text Editor Toolbar -->
+    <div id="editorToolbar" class="editor-toolbar" style="display: none;">
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="boldBtn" title="Bold (Ctrl+B)">
+                <i class="fas fa-bold"></i>
+            </button>
+            <button class="toolbar-btn" id="italicBtn" title="Italic (Ctrl+I)">
+                <i class="fas fa-italic"></i>
+            </button>
+            <button class="toolbar-btn" id="underlineBtn" title="Underline (Ctrl+U)">
+                <i class="fas fa-underline"></i>
+            </button>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="h1Btn" title="Heading 1">
+                <i class="fas fa-heading"></i>
+            </button>
+            <button class="toolbar-btn" id="h2Btn" title="Heading 2">
+                H2
+            </button>
+            <button class="toolbar-btn" id="h3Btn" title="Heading 3">
+                H3
+            </button>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="bulletListBtn" title="Bullet List">
+                <i class="fas fa-list-ul"></i>
+            </button>
+            <button class="toolbar-btn" id="numberListBtn" title="Numbered List">
+                <i class="fas fa-list-ol"></i>
+            </button>
+            <button class="toolbar-btn" id="blockquoteBtn" title="Blockquote">
+                <i class="fas fa-quote-left"></i>
+            </button>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="linkBtn" title="Insert Link">
+                <i class="fas fa-link"></i>
+            </button>
+            <button class="toolbar-btn" id="codeBtn" title="Code Block">
+                <i class="fas fa-code"></i>
+            </button>
+            <button class="toolbar-btn" id="imageBtn" title="Insert Image">
+                <i class="fas fa-image"></i>
+            </button>
+        </div>
+
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="clearFormatBtn" title="Clear Formatting">
+                <i class="fas fa-eraser"></i>
+            </button>
+            <button class="toolbar-btn" id="undoBtn" title="Undo">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="toolbar-btn" id="redoBtn" title="Redo">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Voice Notes Modal -->
+    <div id="voiceNotesModal" class="modal" style="display: none;">
+        <div class="modal-content voice-notes-modal">
+            <div class="modal-header">
+                <h2>Voice Notes</h2>
+                <button class="btn-close" onclick="closeModal('voiceNotesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="voice-recorder">
+                    <button class="record-btn" id="recordBtn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <div class="recording-info">
+                        <div class="recording-timer" id="recordingTimer">00:00</div>
+                        <div class="recording-status" id="recordingStatus">Ready to record</div>
+                    </div>
+                </div>
+
+                <div class="voice-files-list">
+                    <h3>Your Voice Notes</h3>
+                    <div id="voiceFilesList" class="files-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Center Modal -->
+    <div id="notificationCenterModal" class="modal" style="display: none;">
+        <div class="modal-content notification-center-modal">
+            <div class="modal-header">
+                <h2>Notification Center</h2>
+                <button class="btn-close" onclick="closeModal('notificationCenterModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-filters">
+                    <button class="notif-filter-btn active" data-filter="all">All</button>
+                    <button class="notif-filter-btn" data-filter="mentions">Mentions</button>
+                    <button class="notif-filter-btn" data-filter="shares">Shares</button>
+                    <button class="notif-filter-btn" data-filter="collaboration">Collaboration</button>
+                </div>
+
+                <div id="notificationsList" class="notifications-list">
+                    <!-- Notifications will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Advanced Search Panel -->
     <div id="advancedSearchPanel" class="advanced-search-panel" style="display: none;">
         <div class="search-filters">

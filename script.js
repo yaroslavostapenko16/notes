@@ -2203,3 +2203,828 @@ console.log('Notes Application Loaded - Ready for use');
 console.log('Version: 2.5.0');
 console.log('Features: Create, Edit, Delete, Archive, Pin, Search, Analytics, Settings, Export, Theme, Advanced Filters');
 console.log('Keyboard Shortcuts: Ctrl+N (New), Ctrl+S (Save), Ctrl+F (Search), Ctrl+/ (Help), Ctrl+B (Bold), Ctrl+I (Italic)');
+
+// ====================
+// Note Templates System
+// ====================
+
+/**
+ * Show templates modal
+ */
+function showTemplatesModal() {
+    const modal = document.getElementById('templatesModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Template definitions
+ */
+const noteTemplates = {
+    blank: {
+        title: 'Untitled Note',
+        content: ''
+    },
+    checklist: {
+        title: 'Checklist',
+        content: '☐ Task 1\n☐ Task 2\n☐ Task 3\n☐ Task 4'
+    },
+    meeting: {
+        title: 'Meeting Notes - ' + new Date().toLocaleDateString(),
+        content: 'Date: ' + new Date().toLocaleDateString() + '\nAttendees: \n\nAgenda:\n1. \n2. \n3. \n\nAction Items:\n- \n- \n\nNotes:\n'
+    },
+    daily: {
+        title: 'Daily Journal - ' + new Date().toLocaleDateString(),
+        content: 'Today\'s Date: ' + new Date().toLocaleDateString() + '\n\nToday I am grateful for:\n1. \n2. \n3. \n\nWhat I accomplished:\n- \n- \n\nWhat I learned:\n\nHow I felt today:\n'
+    },
+    project: {
+        title: 'Project Plan',
+        content: 'Project Name: \nStart Date: \nDeadline: \n\nObjectives:\n1. \n2. \n3. \n\nTasks:\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3\n\nResources Needed:\n- \n\nRisks & Mitigation:\n'
+    },
+    idea: {
+        title: 'Idea Board',
+        content: 'Main Idea: \n\nWhy It\'s Interesting:\n\nPotential Challenges:\n\nHow To Build It:\n\nSuccess Metrics:\n\nRelated Ideas:\n'
+    }
+};
+
+/**
+ * Use a note template
+ */
+function useTemplate(templateName) {
+    const template = noteTemplates[templateName];
+    if (template) {
+        currentEditingNote = {
+            id: null,
+            title: template.title,
+            content: template.content,
+            color: '#FFFFFF',
+            isPinned: false,
+            isArchived: false
+        };
+
+        document.getElementById('noteTitle').value = template.title;
+        document.getElementById('noteContent').value = template.content;
+        closeModal('templatesModal');
+        showEditor();
+        showNotification('Template loaded!', 'success');
+    }
+}
+
+// ====================
+// Labels & Tags System
+// ====================
+
+let userLabels = [],
+    noteLabels = {};
+
+/**
+ * Show labels management modal
+ */
+function showLabelsModal() {
+    const modal = document.getElementById('labelsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadLabels();
+    }
+}
+
+/**
+ * Load user labels
+ */
+function loadLabels() {
+    fetch(`${API_BASE}/notes.php?action=get_labels`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                userLabels = data.data || [];
+                renderLabels();
+                loadPopularTags();
+            }
+        })
+        .catch(error => console.error('Error loading labels:', error));
+}
+
+/**
+ * Render labels list
+ */
+function renderLabels() {
+    const container = document.getElementById('labelsContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    userLabels.forEach(label => {
+        const labelEl = document.createElement('div');
+        labelEl.className = 'label-item';
+        labelEl.innerHTML = `
+            <span class="label-color" style="background-color: ${label.color}; width: 12px; height: 12px; border-radius: 50%;"></span>
+            <span class="label-name">${escapeHtml(label.name)}</span>
+            <span class="label-count">${label.count || 0}</span>
+            <button class="btn-icon" onclick="deleteLabel(${label.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        container.appendChild(labelEl);
+    });
+}
+
+/**
+ * Create new label
+ */
+function createLabel() {
+    const nameInput = document.getElementById('newLabelName');
+    const name = nameInput.value.trim();
+    const colorBtn = document.querySelector('.color-dot.selected') || document.querySelector('.color-dot');
+    const color = colorBtn?.getAttribute('data-color') || '#3b82f6';
+
+    if (!name) {
+        showNotification('Please enter a label name', 'error');
+        return;
+    }
+
+    fetch(`${API_BASE}/notes.php?action=create_label`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            nameInput.value = '';
+            loadLabels();
+            showNotification('Label created!', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating label:', error);
+        showNotification('Error creating label', 'error');
+    });
+}
+
+/**
+ * Delete label
+ */
+function deleteLabel(labelId) {
+    if (!confirm('Delete this label?')) return;
+
+    fetch(`${API_BASE}/notes.php?action=delete_label`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ labelId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadLabels();
+            showNotification('Label deleted!', 'success');
+        }
+    });
+}
+
+/**
+ * Load popular tags
+ */
+function loadPopularTags() {
+    const container = document.getElementById('popularTagsContainer');
+    if (!container) return;
+
+    const tags = new Map();
+    currentNotes.forEach(note => {
+        const hashtagMatches = note.content?.match(/#\w+/g) || [];
+        hashtagMatches.forEach(tag => {
+            tags.set(tag, (tags.get(tag) || 0) + 1);
+        });
+    });
+
+    container.innerHTML = '';
+    const popularTags = Array.from(tags.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    popularTags.forEach(([tag, count]) => {
+        const tagEl = document.createElement('span');
+        tagEl.className = 'tag-badge';
+        tagEl.textContent = `${tag} (${count})`;
+        tagEl.addEventListener('click', () => {
+            document.getElementById('searchInput').value = tag;
+            searchNotes();
+            closeModal('labelsModal');
+        });
+        container.appendChild(tagEl);
+    });
+}
+
+// ====================
+// Note History & Versioning
+// ====================
+
+/**
+ * Show note history modal
+ */
+function showHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadNoteHistory();
+    }
+}
+
+/**
+ * Load note history
+ */
+function loadNoteHistory() {
+    if (!currentEditingNote.id) {
+        showNotification('No note selected', 'error');
+        return;
+    }
+
+    fetch(`${API_BASE}/notes.php?action=get_history&noteId=${currentEditingNote.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderHistoryTimeline(data.data);
+            }
+        })
+        .catch(error => console.error('Error loading history:', error));
+}
+
+/**
+ * Render history timeline
+ */
+function renderHistoryTimeline(versions) {
+    const container = document.getElementById('historyTimeline');
+    if (!container) return;
+
+    container.innerHTML = '';
+    versions.forEach((version, index) => {
+        const versionEl = document.createElement('div');
+        versionEl.className = 'history-item';
+        versionEl.innerHTML = `
+            <div class="history-dot"></div>
+            <div class="history-content">
+                <div class="history-header">
+                    <span class="history-version">Version ${versions.length - index}</span>
+                    <span class="history-date">${formatDate(new Date(version.savedAt))}</span>
+                </div>
+                <p class="history-title">${escapeHtml(version.title)}</p>
+                <p class="history-preview">${escapeHtml(version.content?.substring(0, 100) + '...')}</p>
+                <button class="btn btn-secondary" onclick="restoreVersion(${version.id})">
+                    <i class="fas fa-undo"></i> Restore This Version
+                </button>
+            </div>
+        `;
+        container.appendChild(versionEl);
+    });
+}
+
+/**
+ * Restore note to previous version
+ */
+function restoreVersion(versionId) {
+    if (!confirm('Restore this version? Current version will be saved as backup.')) return;
+
+    fetch(`${API_BASE}/notes.php?action=restore_version`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ versionId, noteId: currentEditingNote.id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            currentEditingNote = data.data;
+            document.getElementById('noteTitle').value = currentEditingNote.title;
+            document.getElementById('noteContent').value = currentEditingNote.content;
+            closeModal('historyModal');
+            showNotification('Version restored!', 'success');
+        }
+    });
+}
+
+// ====================
+// Sharing & Collaboration
+// ====================
+
+/**
+ * Show sharing modal
+ */
+function showSharingModal() {
+    const modal = document.getElementById('sharingModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadSharingData();
+    }
+}
+
+/**
+ * Load sharing data for current note
+ */
+function loadSharingData() {
+    if (!currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=get_sharing_link&noteId=${currentEditingNote.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('shareLink').value = data.link || '';
+                loadCollaborators();
+                loadActivityLog();
+            }
+        });
+}
+
+/**
+ * Generate new share link
+ */
+function generateNewShareLink() {
+    if (!currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=generate_share_link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noteId: currentEditingNote.id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('shareLink').value = data.link;
+            showNotification('New share link generated!', 'success');
+        }
+    });
+}
+
+/**
+ * Copy share link to clipboard
+ */
+function copyShareLink() {
+    const linkInput = document.getElementById('shareLink');
+    linkInput.select();
+    document.execCommand('copy');
+    showNotification('Link copied to clipboard!', 'success');
+}
+
+/**
+ * Add collaborator
+ */
+function addCollaborator() {
+    const emailInput = document.getElementById('collaboratorEmail');
+    const email = emailInput.value.trim();
+
+    if (!email || !currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=add_collaborator`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noteId: currentEditingNote.id, email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            emailInput.value = '';
+            loadCollaborators();
+            showNotification('Collaborator added!', 'success');
+        } else {
+            showNotification(data.message || 'Could not add collaborator', 'error');
+        }
+    });
+}
+
+/**
+ * Load collaborators list
+ */
+function loadCollaborators() {
+    if (!currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=get_collaborators&noteId=${currentEditingNote.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderCollaborators(data.data);
+            }
+        });
+}
+
+/**
+ * Render collaborators
+ */
+function renderCollaborators(collaborators) {
+    const container = document.getElementById('collaboratorsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+    collaborators.forEach(collab => {
+        const collabEl = document.createElement('div');
+        collabEl.className = 'collaborator-item';
+        collabEl.innerHTML = `
+            <div class="collaborator-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="collaborator-info">
+                <span class="collaborator-email">${escapeHtml(collab.email)}</span>
+                <span class="collaborator-role">${collab.role}</span>
+            </div>
+            <button class="btn-icon" onclick="removeCollaborator(${collab.id})">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        container.appendChild(collabEl);
+    });
+}
+
+/**
+ * Load activity log
+ */
+function loadActivityLog() {
+    if (!currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=get_activity_log&noteId=${currentEditingNote.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderActivityLog(data.data);
+            }
+        });
+}
+
+/**
+ * Render activity log
+ */
+function renderActivityLog(activities) {
+    const container = document.getElementById('activityLogContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    activities.slice(0, 10).forEach(activity => {
+        const actEl = document.createElement('div');
+        actEl.className = 'activity-item';
+        actEl.innerHTML = `
+            <span class="activity-icon">
+                <i class="fas fa-${getActivityIcon(activity.type)}"></i>
+            </span>
+            <div class="activity-details">
+                <span class="activity-text">${escapeHtml(activity.userName)} ${activity.action}</span>
+                <span class="activity-time">${formatDate(new Date(activity.timestamp))}</span>
+            </div>
+        `;
+        container.appendChild(actEl);
+    });
+}
+
+/**
+ * Get icon for activity type
+ */
+function getActivityIcon(type) {
+    const icons = {
+        edit: 'edit',
+        view: 'eye',
+        delete: 'trash',
+        restore: 'undo',
+        comment: 'comment',
+        share: 'share'
+    };
+    return icons[type] || 'clock';
+}
+
+/**
+ * Remove collaborator
+ */
+function removeCollaborator(collabId) {
+    if (!confirm('Remove this collaborator?')) return;
+
+    fetch(`${API_BASE}/notes.php?action=remove_collaborator`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collaboratorId: collabId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadCollaborators();
+            showNotification('Collaborator removed!', 'success');
+        }
+    });
+}
+
+// ====================
+// Rich Text Editor Enhancements
+// ====================
+
+/**
+ * Show advanced editor toolbar
+ */
+function initializeEditorToolbar() {
+    const noteContent = document.getElementById('noteContent');
+    if (!noteContent) return;
+
+    noteContent.addEventListener('focus', () => {
+        const toolbar = document.getElementById('editorToolbar');
+        if (toolbar) toolbar.style.display = 'flex';
+    });
+
+    // Setup toolbar button listeners
+    setupTextFormatting();
+}
+
+/**
+ * Setup text formatting buttons
+ */
+function setupTextFormatting() {
+    document.getElementById('boldBtn')?.addEventListener('click', () => applyFormatting('bold'));
+    document.getElementById('italicBtn')?.addEventListener('click', () => applyFormatting('italic'));
+    document.getElementById('underlineBtn')?.addEventListener('click', () => applyFormatting('underline'));
+    document.getElementById('h1Btn')?.addEventListener('click', () => applyFormatting('formatBlock', '<h1>'));
+    document.getElementById('h2Btn')?.addEventListener('click', () => applyFormatting('formatBlock', '<h2>'));
+    document.getElementById('h3Btn')?.addEventListener('click', () => applyFormatting('formatBlock', '<h3>'));
+    document.getElementById('bulletListBtn')?.addEventListener('click', () => applyFormatting('insertUnorderedList'));
+    document.getElementById('numberListBtn')?.addEventListener('click', () => applyFormatting('insertOrderedList'));
+    document.getElementById('blockquoteBtn')?.addEventListener('click', () => applyFormatting('formatBlock', '<blockquote>'));
+    document.getElementById('codeBtn')?.addEventListener('click', () => applyFormatting('formatBlock', '<pre>'));
+    document.getElementById('clearFormatBtn')?.addEventListener('click', () => applyFormatting('removeFormat'));
+    document.getElementById('undoBtn')?.addEventListener('click', () => applyFormatting('undo'));
+    document.getElementById('redoBtn')?.addEventListener('click', () => applyFormatting('redo'));
+    document.getElementById('linkBtn')?.addEventListener('click', insertLink);
+    document.getElementById('imageBtn')?.addEventListener('click', insertImage);
+}
+
+/**
+ * Apply formatting to selected text
+ */
+function applyFormatting(command, value = null) {
+    document.execCommand(command, false, value);
+    document.getElementById('noteContent').focus();
+}
+
+/**
+ * Insert link
+ */
+function insertLink() {
+    const url = prompt('Enter URL:');
+    if (url) {
+        document.execCommand('createLink', false, url);
+    }
+}
+
+/**
+ * Insert image
+ */
+function insertImage() {
+    const imageUrl = prompt('Enter image URL:');
+    if (imageUrl) {
+        document.execCommand('insertImage', false, imageUrl);
+    }
+}
+
+// ====================
+// Voice Notes
+// ====================
+
+let mediaRecorder = null,
+    recordingStartTime = null,
+    recordingInterval = null;
+
+/**
+ * Show voice notes modal
+ */
+function showVoiceNotesModal() {
+    const modal = document.getElementById('voiceNotesModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadVoiceNotes();
+    }
+}
+
+/**
+ * Start recording voice note
+ */
+function startVoiceRecording() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                const audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    saveVoiceNote(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                recordingStartTime = Date.now();
+                updateRecordingTimer();
+
+                recordingInterval = setInterval(updateRecordingTimer, 100);
+                document.getElementById('recordBtn').textContent = '⏹ Stop Recording';
+                document.getElementById('recordingStatus').textContent = 'Recording...';
+            })
+            .catch(error => {
+                showNotification('Microphone access denied', 'error');
+                console.error('Microphone error:', error);
+            });
+    }
+}
+
+/**
+ * Stop voice recording
+ */
+function stopVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        clearInterval(recordingInterval);
+        document.getElementById('recordBtn').textContent = '🎤 Start Recording';
+        document.getElementById('recordingStatus').textContent = 'Processing...';
+    }
+}
+
+/**
+ * Update recording timer
+ */
+function updateRecordingTimer() {
+    if (recordingStartTime) {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        document.getElementById('recordingTimer').textContent = 
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}
+
+/**
+ * Save voice note
+ */
+function saveVoiceNote(audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+    formData.append('noteId', currentEditingNote.id || 'temp');
+
+    fetch(`${API_BASE}/notes.php?action=save_voice_note`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Voice note saved!', 'success');
+            loadVoiceNotes();
+            document.getElementById('recordingStatus').textContent = 'Ready to record';
+        }
+    });
+}
+
+/**
+ * Load voice notes
+ */
+function loadVoiceNotes() {
+    if (!currentEditingNote.id) return;
+
+    fetch(`${API_BASE}/notes.php?action=get_voice_notes&noteId=${currentEditingNote.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderVoiceNotes(data.data);
+            }
+        });
+}
+
+/**
+ * Render voice notes list
+ */
+function renderVoiceNotes(voiceNotes) {
+    const container = document.getElementById('voiceFilesList');
+    if (!container) return;
+
+    container.innerHTML = '';
+    voiceNotes.forEach(note => {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'voice-note-item';
+        noteEl.innerHTML = `
+            <button class="voice-play-btn">
+                <i class="fas fa-play"></i>
+            </button>
+            <div class="voice-note-info">
+                <span class="voice-note-name">${formatDate(new Date(note.createdAt))}</span>
+                <span class="voice-note-duration">${note.duration}s</span>
+            </div>
+            <button class="btn-icon" onclick="deleteVoiceNote(${note.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        noteEl.querySelector('.voice-play-btn').addEventListener('click', () => {
+            playVoiceNote(note.url);
+        });
+        
+        container.appendChild(noteEl);
+    });
+}
+
+/**
+ * Play voice note
+ */
+function playVoiceNote(url) {
+    const audio = new Audio(url);
+    audio.play();
+}
+
+/**
+ * Delete voice note
+ */
+function deleteVoiceNote(voiceNoteId) {
+    if (!confirm('Delete this voice note?')) return;
+
+    fetch(`${API_BASE}/notes.php?action=delete_voice_note`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voiceNoteId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadVoiceNotes();
+            showNotification('Voice note deleted!', 'success');
+        }
+    });
+}
+
+// ====================
+// Enhanced Notifications
+// ====================
+
+/**
+ * Show notification center
+ */
+function showNotificationCenter() {
+    const modal = document.getElementById('notificationCenterModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadNotificationsCenter();
+    }
+}
+
+/**
+ * Load notifications
+ */
+function loadNotificationsCenter() {
+    fetch(`${API_BASE}/auth.php?action=get_notifications`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderNotifications(data.data);
+            }
+        });
+}
+
+/**
+ * Render notifications
+ */
+function renderNotifications(notifications) {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    container.innerHTML = '';
+    notifications.forEach(notif => {
+        const notifEl = document.createElement('div');
+        notifEl.className = `notification-item ${notif.read ? 'read' : 'unread'}`;
+        notifEl.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-header">
+                    <span class="notification-title">${escapeHtml(notif.title)}</span>
+                    <span class="notification-time">${formatDate(new Date(notif.createdAt))}</span>
+                </div>
+                <p class="notification-body">${escapeHtml(notif.message)}</p>
+                ${notif.actionUrl ? `<a href="${notif.actionUrl}" class="notification-action">View</a>` : ''}
+            </div>
+        `;
+        container.appendChild(notifEl);
+    });
+}
+
+// ====================
+// Setup on Initialization
+// ====================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeEditorToolbar();
+        setupRecordingButton();
+    });
+} else {
+    initializeEditorToolbar();
+    setupRecordingButton();
+}
+
+/**
+ * Setup recording button
+ */
+function setupRecordingButton() {
+    const recordBtn = document.getElementById('recordBtn');
+    if (recordBtn) {
+        recordBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopVoiceRecording();
+            } else {
+                startVoiceRecording();
+            }
+        });
+    }
+}
