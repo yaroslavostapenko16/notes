@@ -1,0 +1,408 @@
+<?php
+/**
+ * Installation and Setup Guide for Notes App on Hostinger
+ */
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App - Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .step {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .success {
+            color: #27ae60;
+            background: #d5f4e6;
+            padding: 10px;
+            border-left: 4px solid #27ae60;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            color: #e67e22;
+            background: #fdebd0;
+            padding: 10px;
+            border-left: 4px solid #e67e22;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .error {
+            color: #c0392b;
+            background: #fadbd8;
+            padding: 10px;
+            border-left: 4px solid #c0392b;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .button-group {
+            margin-top: 20px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            margin-right: 10px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+        }
+        
+        .button.secondary {
+            background: #95a5a6;
+        }
+        
+        .button.secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist li:before {
+            content: "✓ ";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Notes App - Setup Guide</h1>
+            <p>Complete setup instructions for Hostinger deployment</p>
+        </header>
+        
+        <div class="section">
+            <h2>🚀 Quick Start</h2>
+            <div class="step">
+                <h3>Step 1: Upload Files to Public HTML</h3>
+                <p>Upload all files to your <code>public_html</code> folder on Hostinger:</p>
+                <div class="code-block">
+index.html<br>
+style.css<br>
+script.js<br>
+config.php<br>
+database.sql<br>
+.htaccess<br>
+debug.php (optional - for troubleshooting)<br>
+api/<br>
+&nbsp;&nbsp;├─ auth.php<br>
+&nbsp;&nbsp;├─ notes.php<br>
+&nbsp;&nbsp;└─ labels.php
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: Create Database</h3>
+                <p>Using Hostinger's phpMyAdmin:</p>
+                <ol>
+                    <li>Go to cPanel → phpMyAdmin</li>
+                    <li>Create a new database (if not already created)</li>
+                    <li>Import the <code>database.sql</code> file into your database</li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h3>Step 3: Verify Configuration</h3>
+                <p>Visit your domain to check if everything is working:</p>
+                <div class="code-block">
+https://note.websweos.com/debug.php
+                </div>
+                <p><strong>Note:</strong> Remove <code>debug.php</code> from production for security.</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Database Configuration</h2>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Database Name</td>
+                    <td><code>u757840095_note</code></td>
+                </tr>
+                <tr>
+                    <td>Database User</td>
+                    <td><code>u757840095_note2</code></td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td><code>MB?EM6aTa7&M</code></td>
+                </tr>
+                <tr>
+                    <td>Server</td>
+                    <td><code>localhost</code></td>
+                </tr>
+                <tr>
+                    <td>Port</td>
+                    <td><code>3306</code></td>
+                </tr>
+            </table>
+            
+            <div class="warning">
+                <strong>⚠️ Important:</strong> These credentials are visible in config.php. For better security, consider using environment variables or keeping them in a separate, protected file accessible only via PHP.
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🛠️ Troubleshooting</h2>
+            
+            <h3>Problem: "Database connection failed"</h3>
+            <div class="step">
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Visit <code>debug.php</code> to check database connection</li>
+                    <li>Verify credentials in config.php</li>
+                    <li>Ensure database user has proper permissions</li>
+                    <li>Check if database exists in phpMyAdmin</li>
+                </ul>
+            </div>
+            
+            <h3>Problem: "Login/Register not working"</h3>
+            <div class="step">
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check browser console (F12) for JavaScript errors</li>
+                    <li>View Network tab to see API responses</li>
+                    <li>Ensure <code>api/auth.php</code> is accessible</li>
+                    <li>Check error.log file in root directory</li>
+                </ul>
+            </div>
+            
+            <h3>Problem: "CORS errors or 404 errors"</h3>
+            <div class="step">
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Verify <code>.htaccess</code> file is in root directory</li>
+                    <li>Check API file paths are correct</li>
+                    <li>Ensure mod_rewrite is enabled on your server</li>
+                </ul>
+            </div>
+            
+            <h3>Problem: "Blank page or white screen"</h3>
+            <div class="step">
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check PHP error log: <code>error.log</code> in root</li>
+                    <li>Visit <code>debug.php</code> for detailed diagnostics</li>
+                    <li>Check server console.txt in Hostinger</li>
+                    <li>Verify all PHP files have correct syntax</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📁 File Structure</h2>
+            <div class="code-block">
+notes/<br>
+├── index.html &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Main HTML file)<br>
+├── style.css &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(CSS styling)<br>
+├── script.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Frontend JavaScript)<br>
+├── config.php &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Database config)<br>
+├── database.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Database schema)<br>
+├── .htaccess &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Server config)<br>
+├── debug.php &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Debug page)<br>
+├── error.log &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Error log)<br>
+└── api/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── auth.php &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Auth API)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── notes.php &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Notes API)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── labels.php &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Labels API)
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔒 Security Considerations</h2>
+            <ul>
+                <li><strong>Remove debug.php</strong> from production</li>
+                <li><strong>Update JWT_SECRET</strong> in config.php to a unique value</li>
+                <li><strong>Use HTTPS</strong> for all connections</li>
+                <li><strong>Implement rate limiting</strong> to prevent brute force attacks</li>
+                <li><strong>Use environment variables</strong> for sensitive data instead of hardcoding</li>
+                <li><strong>Validate all user inputs</strong> on both client and server side</li>
+                <li><strong>Enable CSRF protection</strong> for form submissions</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>✅ Testing Checklist</h2>
+            <ul class="checklist">
+                <li>All files uploaded to public_html</li>
+                <li>Database created and imported</li>
+                <li>debug.php shows successful database connection</li>
+                <li>User registration works</li>
+                <li>User login works</li>
+                <li>Creating a note works</li>
+                <li>Editing a note works</li>
+                <li>Deleting a note works</li>
+                <li>Pinning notes works</li>
+                <li>Archiving notes works</li>
+                <li>Search functionality works</li>
+                <li>Logout works</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>📞 Support</h2>
+            <p><strong>For Hostinger-specific issues:</strong></p>
+            <ul>
+                <li>Contact Hostinger support: <a href="https://hostinger.com/support" target="_blank">support.hostinger.com</a></li>
+                <li>Check Hostinger documentation for PHP settings</li>
+                <li>Review error.log file for detailed error messages</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>🔄 Updates & Maintenance</h2>
+            <p>Regular maintenance tasks:</p>
+            <ul>
+                <li><strong>Database backup:</strong> Use phpMyAdmin to export database regularly</li>
+                <li><strong>Update config.php:</strong> Change JWT_SECRET and other sensitive values</li>
+                <li><strong>Monitor error.log:</strong> Check for any issues</li>
+                <li><strong>Clean old logs:</strong> Periodically clear error.log to prevent disk space issues</li>
+            </ul>
+        </div>
+        
+        <div class="button-group">
+            <a href="index.html" class="button">Go to App</a>
+            <a href="debug.php" class="button secondary">Debug Console</a>
+        </div>
+        
+        <footer>
+            <p>Notes App v1.0 | Google Keep Clone for Hostinger</p>
+            <p>Created with ❤️ for better note management</p>
+        </footer>
+    </div>
+</body>
+</html>

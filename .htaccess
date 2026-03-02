@@ -1,0 +1,57 @@
+<FilesMatch "\.php$">
+    Allow from all
+</FilesMatch>
+
+# Enable mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Don't process requests if file or directory exists
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    # Allow any origin for API (can be restricted later)
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    
+    # Prevent clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Enable XSS protection
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Set proper character encoding
+<IfModule mod_charset.c>
+    AddCharset UTF-8 .html .php .js .css
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
+</IfModule>
+
+# Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access 1 hour"
+    ExpiresByType text/css "access 1 month"
+    ExpiresByType application/javascript "access 1 month"
+    ExpiresByType image/jpeg "access 1 year"
+    ExpiresByType image/gif "access 1 year"
+    ExpiresByType image/png "access 1 year"
+</IfModule>
+
+# Hide sensitive files
+<FilesMatch "\.(env|config\.php|database\.sql|debug\.php)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
